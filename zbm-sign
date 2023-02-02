@@ -1,1 +1,24 @@
+#!/usr/bin/env perl
+# vim: softtabstop=2 shiftwidth=2 expandtab
+print "---------- SETTING UP ----------\n";
+use feature 'say';
+use strict;
+use warnings;
+use YAML::XS 'LoadFile';
+use File::Find;
+
+    
+my $config = LoadFile('/etc/zfsbootmenu/config.yaml');
+
+my $Global = $config->{Global};
+my $ESP = $Global->{BootMountPoint};
+my $ZBM = "$ESP/EFI/zbm";
+
+opendir my $ZBM_dir, $ZBM
+    or die "Cannot open ZBM dir: $ZBM";
+
+my @EFIBins = grep {!/^signed.efi/ and /\.efi/ or /\.EFI/ } readdir $ZBM_dir;
+
+say "@EFIBins";
+print "---------- FINISHED ----------\n";
 # TODO: Everything

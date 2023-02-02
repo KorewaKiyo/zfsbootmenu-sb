@@ -1,2 +1,3 @@
 # zfsbootmenu-sb
-Hooks for signing ZFSBootMenu for use with Secure Boot.
+This tool is inspired by sbupdate, and allows you to sign ZFSBootMenu using your own Secure Boot Keys.
+
