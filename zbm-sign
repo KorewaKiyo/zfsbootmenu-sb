@@ -8,6 +8,10 @@ use warnings;
 use YAML::XS 'LoadFile';
 use File::Find;
 
+# Presets
+my $KeyDir = "/etc/efi-keys";
+my $DeleteUnsigned = "0";
+my $SignBackup = "1";
     
 my $config = LoadFile('/etc/zfsbootmenu/config.yaml');
 
@@ -15,12 +19,18 @@ my $Global = $config->{Global};
 my $ESP = $Global->{BootMountPoint};
 my $ZBM = "$ESP/EFI/zbm";
 my $SecureBoot = $config->{SecureBoot};
-my $EFIKeys = $SecureBoot->{KeyDir};
 my @EFIBins;
+
+if ($SecureBoot) {
+    $KeyDir = $SecureBoot->{KeyDir};
+    $DeleteUnsigned = $SecureBoot->{DeleteUnsigned};
+    $SignBackup = $SecureBoot->{SignBackup};
+}
+
 opendir my $ZBM_dir, $ZBM
     or die "Cannot open ZBM dir: $ZBM";
 
-if ($SecureBoot->{SignBackup}) {
+if ($SignBackup) {
     @EFIBins = grep { !/signed\.efi$/i and /\.efi/i } readdir $ZBM_dir;
 }
 else {
@@ -32,8 +42,8 @@ say "Found: @EFIBins";
 for(@EFIBins){
     my $Unsigned = substr($_,0,-4);
     say "Signing $Unsigned";
-    system "sbsign --key $EFIKeys/DB.key --cert $EFIKeys/DB.crt $ZBM/$_ --output $ZBM/$Unsigned-signed.efi";
-    if ($SecureBoot->{DeleteUnsigned}) {
+    system "sbsign --key $KeyDir/DB.key --cert $KeyDir/DB.crt $ZBM/$_ --output $ZBM/$Unsigned-signed.efi";
+    if ($DeleteUnsigned) {
         say "Deleting unsigned $_";
         system "rm $ZBM/$_";
     }
