@@ -11,6 +11,7 @@ After you have your keys, you can setup:
 * Install zfsbootmenu-sb
 * Place your keys somewhere (/etc/efi-keys is easiest)
 * Add the SecureBoot configuration to /etc/zfsbootmenu/config.yaml
+* Add `PostHooksDir: /etc/zfsbootmenu/generate-zbm.post.d` under `Global` (script will not run otherwise)
 * Run `sudo generate-zbm -d` to check your config
 
 For each (usually 1) ZBM, you'll get a -signed file out in the same directory.
