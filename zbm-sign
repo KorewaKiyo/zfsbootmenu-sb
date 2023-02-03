@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
 # vim: softtabstop=2 shiftwidth=2 expandtab
+
 print "---------- SETTING UP ----------\n";
 use feature 'say';
 use strict;
@@ -13,12 +14,28 @@ my $config = LoadFile('/etc/zfsbootmenu/config.yaml');
 my $Global = $config->{Global};
 my $ESP = $Global->{BootMountPoint};
 my $ZBM = "$ESP/EFI/zbm";
-
+my $SecureBoot = $config->{SecureBoot};
+my $EFIKeys = $SecureBoot->{KeyDir};
+my @EFIBins;
 opendir my $ZBM_dir, $ZBM
     or die "Cannot open ZBM dir: $ZBM";
 
-my @EFIBins = grep {!/^signed.efi/ and /\.efi/ or /\.EFI/ } readdir $ZBM_dir;
+if ($SecureBoot->{SignBackup}) {
+    @EFIBins = grep { !/signed\.efi$/i and /\.efi/i } readdir $ZBM_dir;
+}
+else {
+    @EFIBins = grep { !/signed\.efi$/i and !/backup/i and /\.efi/i } readdir $ZBM_dir;
+}
 
-say "@EFIBins";
+say "Found: @EFIBins";
+
+for(@EFIBins){
+    my $Unsigned = substr($_,0,-4);
+    say "Signing $Unsigned";
+    system "sbsign --key $EFIKeys/DB.key --cert $EFIKeys/DB.crt $ZBM/$_ --output $ZBM/$Unsigned-signed.efi";
+    if ($SecureBoot->{DeleteUnsigned}) {
+        say "Deleting unsigned $_";
+        system "rm $ZBM/$_";
+    }
+}
 print "---------- FINISHED ----------\n";
-# TODO: Everything
