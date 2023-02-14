@@ -48,11 +48,11 @@ for(@EFIBins){
     say "\nSigning $_";
 
     if ($SignMethod eq "sbctl") {
-        say "sbctl sign $ZBM/$_"
+        system "sbctl sign $ZBM/$_"
     }
     elsif ($SignMethod eq "sbsign") {
         $Unsigned = substr($_,0,-4);
-        say "sbsign --key $KeyDir/DB.key --cert $KeyDir/DB.crt $ZBM/$_ --output $ZBM/$Unsigned-signed.efi";
+        system "sbsign --key $KeyDir/DB.key --cert $KeyDir/DB.crt $ZBM/$_ --output $ZBM/$Unsigned-signed.efi";
     }
     else {
         die "Sign method $SignMethod not valid."
