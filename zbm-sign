@@ -1,7 +1,17 @@
 #!/usr/bin/env perl
 # vim: softtabstop=2 shiftwidth=2 expandtab
 
-print "---------- SETTING UP ----------\n";
+# This script is for signing ZBM EFI Images for use with Secure Boot
+# It supports sbctl and sbsigntools
+
+# Config is written at the end of the main ZBM config file (/etc/zfsbootmenu/config.yaml), and looks like this:
+#SecureBoot:
+#  SignBackup: true
+#  DeleteUnsigned: false
+#  SignMethod: sbctl
+#  KeyDir: /etc/sbkeys/
+
+print "---------- ZBM-Sign ----------\n";
 use feature 'say';
 use strict;
 use warnings;
@@ -14,6 +24,12 @@ my $SignMethod;
 
 my $ypp = YAML::PP->new(boolean => 'boolean');
 my $config = $ypp->load_file('/etc/zfsbootmenu/config.yaml');
+my $EFI = $config->{EFI};
+my $EFI_Enabled = $EFI->{Enabled};
+if (!$EFI_Enabled) {
+    die "EFI images are disabled! Nothing to sign!";
+}
+
 my $Global = $config->{Global};
 my $ESP = $Global->{BootMountPoint};
 
